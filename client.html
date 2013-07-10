@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="viewport" content="user-scalable=no, width=800">
+
+        <script type="text/javascript">
+            function ajaxRequest(){
+                var activexmodes=["Msxml2.XMLHTTP", "Microsoft.XMLHTTP"] //activeX versions to check for in IE
+                if (window.ActiveXObject){ //Test for support for ActiveXObject in IE first (as XMLHttpRequest in IE7 is broken)
+                    for (var i=0; i<activexmodes.length; i++){
+                        try{
+                            return new ActiveXObject(activexmodes[i])
+                        }
+                        catch(e){
+                            //suppress error
+                        }
+                    }
+                }
+                else if (window.XMLHttpRequest) // if Mozilla, Safari etc
+                    return new XMLHttpRequest()
+                else
+                    return false
+            }
+            
+            var http;
+            var x, y, time = 30, click = 0;
+            
+            function startup(){
+                http = new ajaxRequest();
+                if(navigator.userAgent.indexOf("iPad") != -1
+                    || navigator.userAgent.indexOf("iPod") != -1
+                    || navigator.userAgent.indexOf("iPhone") != -1
+                    || navigator.userAgent.indexOf("Android") != -1)
+                {
+                    console.log("Is Mobile OS");
+                    document.addEventListener("touchmove", function (evt)
+                    {
+                        if (evt.touches.length > 0)
+                        {
+                            x = evt.touches[0].pageX;
+                            y = evt.touches[0].pageY;
+                        }
+                        evt.preventDefault();
+                    }); 
+                }
+                else
+                {
+                    console.log("Is Desktop OS");
+                    document.addEventListener("mousemove", function (evt)
+                    {
+                        x = evt.clientX;
+                        y = evt.clientY;
+                    });
+                }
+
+                document.addEventListener("mousedown", onMouseDown);
+                setTimeout(sendMouse, time);
+            }
+            
+            function onMouseDown(evt){
+                click = evt.button + 1;
+                evt.preventDefault();
+                return false;
+            }
+            
+            function sendMouse(){
+                http.open("POST", "/", true);
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+                http.send(x + "&" + y + "&" + click);
+                click = 0;
+                setTimeout(sendMouse, time);
+            }
+        </script>
+    </head>
+    <body onload="startup()" oncontextmenu="return false;">
+    </body>
+</html>
